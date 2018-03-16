@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+<html>
+  <head>
+    <base target="_top">
+    <script>
+      // Prevent forms from submitting.
+      function preventFormSubmit() {
+        var forms = document.querySelectorAll('form');
+        for (var i = 0; i < forms.length; i++) {
+          forms[i].addEventListener('submit', function(event) {
+            event.preventDefault();
+          });
+        }
+      }
+      window.addEventListener('load', preventFormSubmit);
+
+      function handleFormSubmit(formObject) {
+        google.script.run.withSuccessHandler().envianotes(formObject);
+      }
+
+    </script>
+  </head>
+  <body>
+<h2>Enviament de resultats</h2>
+Selecciona les opcions d'enviament:
+<form id="enviament" onsubmit="handleFormSubmit(this)">
+<div class="block form-group">
+<label for="select">Nota final a enviar</label>
+<select id="select" name="nf">
+  <option value="0">No s'envia</option>
+  <option value="1">Mitjana ponderada</option>
+  <option value="2">Ítem més baix</option>
+</select>
+</div>
+<h3>Tipus d'avaluació a enviar</h3>
+<div>
+  <input type="checkbox" id="checkbox1"name="av">
+  <label for="checkbox1">Autoavalució</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox2"name="co">
+  <label for="checkbox2">Coavalució</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox3"name="pf">
+  <label for="checkbox3">Avaluació del professor</label>
+</div>
+<div class="block form-group">
+<label for="select2">Nota global</label>
+<select id="select2" name="ng">
+  <option value="0">No enviar</option>
+  <option value="1">Enviar</option>
+</select>
+</div>
+<h3>Comentaris a enviar</h3> 
+<div>
+  <input type="checkbox" id="checkbox4"name="cav">
+  <label for="checkbox4">Del propi alumne</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox5"name="cco">
+  <label for="checkbox5">Dels companys</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox6"name="cpf">
+  <label for="checkbox6">Del professor</label>
+</div>
+<h3>Destinataris</h3>
+<div>
+  <input type="radio" name="dest" value="all" id="radio1" checked>
+  <label for="radio1">Tots els alumnes/grups</label>
+</div>
+<div>
+  <input type="radio" name="dest" alue="un" id="radio2">
+  <label for="radio2">Un sol alumne/grup</label>
+</div>
+  <p><input type="submit" class="action" value="Enviar"></p>
+</form>
+    <div id="output"></div>
+ </body>
+</html>
+
+
