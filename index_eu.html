@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+<html>
+  <head>
+    <base target="_top">
+    <script>
+      // Prevent forms from submitting.
+      function preventFormSubmit() {
+        var forms = document.querySelectorAll('form');
+        for (var i = 0; i < forms.length; i++) {
+          forms[i].addEventListener('submit', function(event) {
+            event.preventDefault();
+          });
+        }
+      }
+      window.addEventListener('load', preventFormSubmit);
+
+      function handleFormSubmit(formObject) {
+        google.script.run.withSuccessHandler().envianotes(formObject);
+      }
+
+    </script>
+  </head>
+  <body>
+<h2>Emaitzen bidalketa</h2>
+Bidalketa aukerak hauta itzazu:
+<form id="enviament" onsubmit="handleFormSubmit(this)">
+<div class="block form-group">
+<label for="select">Bidaltzeko nota finala</label>
+<select id="select" name="nf">
+  <option value="0">Ez da bidaliko</option>
+  <option value="1">Ponderaturiko batezbestekoa</option>
+  <option value="2">Itemik baxuena</option>
+</select>
+</div>
+<h3>Bidaliko den ebaluazio mota</h3>
+<div>
+  <input type="checkbox" id="checkbox1"name="av">
+  <label for="checkbox1">Autoebaluazioa</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox2"name="co">
+  <label for="checkbox2">Koebaluazioa</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox3"name="pf">
+  <label for="checkbox3">Irakaslearen ebaluazioa</label>
+</div>
+<div class="block form-group">
+<label for="select2">Nota globala</label>
+<select id="select2" name="ng">
+  <option value="0">Ez da bidaliko</option>
+  <option value="1">Bidaliko</option>
+</select>
+</div>
+<h3>Bidaliko diren iruzkinak</h3> 
+<div>
+  <input type="checkbox" id="checkbox4"name="cav">
+  <label for="checkbox4">Norberarenak</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox5"name="cco">
+  <label for="checkbox5">Gelakideenak</label>
+</div>
+<div>
+  <input type="checkbox" id="checkbox6"name="cpf">
+  <label for="checkbox6">Irakaslearenak</label>
+</div>
+<h3>Jasotzailea(k)</h3>
+<div>
+  <input type="radio" name="dest" value="all" id="radio1" checked>
+  <label for="radio1">Ikasle ala talde guztiak</label>
+</div>
+<div>
+  <input type="radio" name="dest" alue="un" id="radio2">
+  <label for="radio2">Ikasle ala talde bakarra</label>
+</div>
+  <p><input type="submit" class="action" value="Bidali"></p>
+</form>
+    <div id="output"></div>
+ </body>
+</html>
+
+
+
+
