@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+  <h2><? 
+  var properties = PropertiesService.getDocumentProperties();   
+  var frase = properties.getProperty('frase');  
+  var boto = properties.getProperty('boto'); ?>
+  <?= frase?></h2>
+    <input type="submit" class="action" value="<?=boto?>" onclick="google.script.host.close()">
+  </body>
+</html>
+
+
