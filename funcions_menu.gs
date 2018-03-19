@@ -1110,7 +1110,7 @@ function procesFormulari() {
     var per_co= "40%";
     var per_prof= "50%";
     reprocess=0;
-    var cv="https://docs.google.com/spreadsheets/d/1eNg5xQ1nq_Psm0JgPw0RWKBPatp4-us890tCDTT4Vrg/";
+    var cv="https://docs.google.com/spreadsheets/d/1eNg5xQ1nq_PsKBPatp4-us890tCDTT4Vrg/";
     var fullOrigen = SpreadsheetApp.openByUrl(cv).getSheetByName("Analytics");
     var filesple = fullOrigen.getDataRange().getNumRows()+1;
     var range = fullOrigen.getRange("A" + filesple + ":B" + filesple);
