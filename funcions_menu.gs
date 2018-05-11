@@ -926,9 +926,22 @@ function creaFormulari() {
       default:
         form.setDescription("This form is used to evaluate the activity. First, choose the student to rate. Then, choose the best description in each aspect.");
     }
+    //Comprovem si el domini del profe és el mateix que el de l'alumne
     
+      var mail_alumne = rangalumnes.getCell(2,2).getValue();
+      var mail_alumne3 = mail_alumne.trim(); //Elimino possibles espais en blanc del mail de l'alumne
+      var mail_alumne2 = mail_alumne3.split("@");
+      var mail_profe = Session.getActiveUser().getEmail();
+      var mail_profe2 = mail_profe.split("@"); 
+      if (mail_alumne2[1]===mail_profe2[1] || mail_alumne==""){
+        try{
+          form.setRequireLogin(true);
+        }catch(err) {
+        };
+      };
+
     try { 
-      form.setCollectEmail(true); //Només si es GAFE
+      form.setCollectEmail(true); 
     
       // Afegir llista alumnes per seleccionar 
       var preguntaList = form.addListItem();
@@ -1110,7 +1123,7 @@ function procesFormulari() {
     var per_co= "40%";
     var per_prof= "50%";
     reprocess=0;
-    var cv="https://docs.google.com/spreadsheets/d/1eNg5xQ1nq_PsKBPatp4-us890tCDTT4Vrg/";
+    var cv="https://docs.google.com/spreadsheets/d/1eNgPsm0JgPw0RWKBPatp4-us890tCDTT4Vrg/";
     var fullOrigen = SpreadsheetApp.openByUrl(cv).getSheetByName("Analytics");
     var filesple = fullOrigen.getDataRange().getNumRows()+1;
     var range = fullOrigen.getRange("A" + filesple + ":B" + filesple);
@@ -2173,7 +2186,6 @@ function importacio_al(formObject){
   .evaluate();      
   SpreadsheetApp.getUi().showModelessDialog(html, 'CoRubrics');
   var cursid = formObject.combo_curs;
-  //var cursid = '5110160217';
   switch(idioma){
     case "ca":
       var nom_full_alumnes= "Alumnes";
@@ -2212,18 +2224,32 @@ function importacio_al(formObject){
     var documentProperties = PropertiesService.getDocumentProperties();
     documentProperties.setProperty('cursid', cursid);
     //importem alumnes
-    var alumnes=Classroom.Courses.Students.list(cursid); 
-    var matriu=new Array(alumnes.students.length);
-    for (var i=0;i<alumnes.students.length;i++){
-      var cognom_al=alumnes.students[i].profile.name.familyName;
-      var nom_al=alumnes.students[i].profile.name.givenName;
-      var mail_al=alumnes.students[i].profile.emailAddress;
-      matriu[i]=new Array(2);
-      matriu[i][0]=cognom_al+", "+nom_al;
-      matriu[i][1]=mail_al;
+    var pagina=null;
+    var ki=0;
+    var estudiants=0;
+    var alumnes = [];
+    do {
+      alumnes[ki]=Classroom.Courses.Students.list(cursid,{pageToken:pagina});
+      estudiants=estudiants + alumnes[ki].students.length;
+      var pagina=alumnes[ki].nextPageToken;
+      ki++;
+    }while (pagina);
+    var matriu=new Array(estudiants);
+    var comptador=0;
+    for (var f=0;f<alumnes.length;f++){
+      for (var i=0;i<alumnes[f].students.length;i++){
+        var cognom_al=alumnes[f].students[i].profile.name.familyName;
+        var nom_al=alumnes[f].students[i].profile.name.givenName;
+        var mail_al=alumnes[f].students[i].profile.emailAddress;
+        matriu[comptador]=new Array(2);
+        matriu[comptador][0]=cognom_al+", "+nom_al;
+        matriu[comptador][1]=mail_al;
+        comptador++;
+      };
     };
+    
     matriu.sort();
-    var rang_full = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nom_full_alumnes).getRange(2,1,alumnes.students.length,2);
+    var rang_full = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nom_full_alumnes).getRange(2,1,estudiants,2);
     rang_full.setValues(matriu);
     //importem professors
     var profes=Classroom.Courses.Teachers.list(cursid);
@@ -2528,14 +2554,14 @@ function publicanotes(formObject){
     };
     //Assignem notes i comentaris
     var tasques_env=Classroom.Courses.CourseWork.StudentSubmissions.list(cursid, tasca_av_id); //recuperem totes les tasques de tots els alumnes
-    for (var i=3; i<fil_mitjanes;i++){ //agafo alumne per alumne. A partir del nom trobem el mailal full alumnes, d'aquí trobarem l'userid. A partir de l'userid,el submissionid
+    for (var i=3; i<fil_mitjanes;i++){ //agafo alumne per alumne. A partir del nom trobem el mail al full alumnes, d'aquí trobarem l'userid. A partir de l'userid, el submissionid
       var nom = valormitjanes[i][1];
       for (var l=1; l<fil_mails;l++){
         if (nom==mails_alumnes[l][0]){  //busquem el nom al full alumnes
           var m = 1;
+          var nota_st = valormitjanes[i][col_mitjanes-8-3*nf];
           while(mails_alumnes[l][m] != "" && m<col_mails){  //posarem les notes a tots els alumnes si és un grup
             var mail_st = mails_alumnes[l][m];
-            var nota_st = valormitjanes[i][col_mitjanes-8-3*nf];
             if (!(isNaN(nota_st))){
               var llista_st = Classroom.Courses.Students.list(cursid); //Agafo la llista d'alumnes
               properties.setProperty('totalum', llista_st.students.length);
@@ -2596,9 +2622,9 @@ function publicanotes(formObject){
       for (var l=1; l<fil_mails;l++){
         if (nom==mails_alumnes[l][0]){  //busquem el nom al full alumnes
           var m = 1;
+          var nota_st = valormitjanes[i][col_mitjanes-9-3*nf];
           while(mails_alumnes[l][m] != "" && m<col_mails){  //posarem les notes a tots els alumnes si és un grup
             var mail_st = mails_alumnes[l][1];
-            var nota_st = valormitjanes[i][col_mitjanes-9-3*nf];
             if (!(isNaN(nota_st))){
               var llista_st = Classroom.Courses.Students.list(cursid); //Agafo la llista d'alumnes
               for (var j=0;j<llista_st.students.length;j++){
@@ -2651,9 +2677,9 @@ function publicanotes(formObject){
       for (var l=1; l<fil_mails;l++){
         if (nom==mails_alumnes[l][0]){  //busquem el nom al full alumnes
           var m = 1;
+          var nota_st = valormitjanes[i][col_mitjanes-7-3*nf];
           while(mails_alumnes[l][m] != "" && m<col_mails){  //posarem les notes a tots els alumnes si és un grup
             var mail_st = mails_alumnes[l][1];
-            var nota_st = valormitjanes[i][col_mitjanes-7-3*nf];
             if (!(isNaN(nota_st))){
               var llista_st = Classroom.Courses.Students.list(cursid); //Agafo la llista d'alumnes
               for (var j=0;j<llista_st.students.length;j++){
