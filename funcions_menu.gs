@@ -1123,7 +1123,7 @@ function procesFormulari() {
     var per_co= "40%";
     var per_prof= "50%";
     reprocess=0;
-    var cv="https://docs.google.com/spreadsheets/d/1eNgPsm0JgPw0RWKBPatp4-us890tCDTT4Vrg/";
+    var cv="https://docs.google.com/spreadsheets/d/1eNg5xQ1nq_Psm0JgPw0RWKBPatp4-us890tCDTT4Vrg/";
     var fullOrigen = SpreadsheetApp.openByUrl(cv).getSheetByName("Analytics");
     var filesple = fullOrigen.getDataRange().getNumRows()+1;
     var range = fullOrigen.getRange("A" + filesple + ":B" + filesple);
@@ -2229,7 +2229,7 @@ function importacio_al(formObject){
     var estudiants=0;
     var alumnes = [];
     do {
-      alumnes[ki]=Classroom.Courses.Students.list(cursid,{pageToken:pagina});
+      alumnes[ki]=Classroom.Courses.Students.list(cursid,{pageToken:pagina});  //Classroom treu els alumnes de 30 en 30. Cal llegir 30 i després canviar el token per llegir-ne 30 més
       estudiants=estudiants + alumnes[ki].students.length;
       var pagina=alumnes[ki].nextPageToken;
       ki++;
@@ -2252,18 +2252,32 @@ function importacio_al(formObject){
     var rang_full = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nom_full_alumnes).getRange(2,1,estudiants,2);
     rang_full.setValues(matriu);
     //importem professors
-    var profes=Classroom.Courses.Teachers.list(cursid);
-    var matriu=new Array(profes.teachers.length);
-    for (var i=0;i<profes.teachers.length;i++){
-      var cognom_pr=profes.teachers[i].profile.name.familyName;
-      var nom_pr=profes.teachers[i].profile.name.givenName;
-      var mail_pr=profes.teachers[i].profile.emailAddress;
-      matriu[i]=new Array(2);
-      matriu[i][0]=cognom_pr+", "+nom_pr;
-      matriu[i][1]=mail_pr;
+    pagina=null;
+    ki=0;
+    var professors=0;
+    var profes = [];
+    do {
+      profes[ki]=Classroom.Courses.Teachers.list(cursid,{pageToken:pagina});  //Classroom treu els profes de 30 en 30. Cal llegir 30 i després canviar el token per llegir-ne 30 més
+      professors=professors + profes[ki].teachers.length;
+      var pagina=profes[ki].nextPageToken;
+      ki++;
+    }while (pagina);  
+    var matriu=new Array(professors);
+    var comptador=0;
+    for (var f=0;f<profes.length;f++){
+      for (var i=0;i<profes[f].teachers.length;i++){
+        var cognom_pr=profes[f].teachers[i].profile.name.familyName;
+        var nom_pr=profes[f].teachers[i].profile.name.givenName;
+        var mail_pr=profes[f].teachers[i].profile.emailAddress;
+        matriu[comptador]=new Array(2);
+        matriu[comptador][0]=cognom_pr+", "+nom_pr;
+        matriu[comptador][1]=mail_pr;
+        comptador++;
+      };
     };
+    
     matriu.sort();
-    var rang_full = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nom_full_prof).getRange(2,1,profes.teachers.length,2);
+    var rang_full = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nom_full_prof).getRange(2,1,professors,2);
     rang_full.setValues(matriu);
     
     switch(idioma){
