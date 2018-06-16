@@ -174,27 +174,32 @@ function envianotes(formObject) {
       var nom_full_rubrica = "Rúbrica";
       var nom_full_alumnes= "Alumnes";
       var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianes"
       break;
     case "es":
       var nom_full_rubrica = "Rúbrica";
       var nom_full_alumnes= "Alumnos";
       var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianas"
       break;
     case "eu":
       var nom_full_rubrica = "Errubrika";
       var nom_full_alumnes= "Ikasleak";
       var nom_full_prof= "Irakasleak";
+      var nom_full_dianes = "Dianak"
       break;
     case "fr":
       var nom_full_rubrica = "Grille";
       var nom_full_alumnes= "Élèves";
       var nom_full_prof= "Enseignants";
+      var nom_full_dianes = "Radar"
       break;
     default:
       var nom_full_rubrica = "Rubric";
       var nom_full_alumnes= "Students";
-      var nom_full_prof= "Teachers";
-  }  
+      var nom_full_prof= "Teachers";  
+      var nom_full_dianes = "Radar"
+  } 
   var rubricaActual = llibreActual.getSheetByName(nom_full_rubrica);
   var rangrubrica = rubricaActual.getDataRange();
   var llistaalumnes = llibreActual.getSheetByName(nom_full_alumnes);
@@ -223,6 +228,12 @@ function envianotes(formObject) {
     var notaglobal="no";
   }else{
     var notaglobal="yes";
+  };
+  var de = formObject.de;
+  if (de==="0"){
+    var dianasavaluacio="no";
+  }else{
+    var dianasavaluacio="yes";
   };
   var av = formObject.av;
   if (av==="on") {
@@ -354,7 +365,7 @@ function envianotes(formObject) {
       var pc = "Puntuación de los compañeros";
       var pp = "Puntuación propia";
       var ppr = "Puntuación del profesor";
-      var ng = "Nota final"
+      var ng = "Nota final";
       var nfg= "Nota global";
       var cpf ="Comentarios del profesor: ";
       var cco ="Comentarios de los compañeros: ";
@@ -402,7 +413,6 @@ function envianotes(formObject) {
       };
       alumnes = r_al[i+1][j+1];
       if (alumnes!=""){
-      
         //Definim el cos del missatge amb la rúbrica original i els resultats
         cosmissatge='<table border="1" cellpadding="0" cellspacing="0" bordercolor="#000000"><tr align="center" valign="middle" bgcolor="#C0C0C0">';
         for (k=1;k<rangrubrica.getNumColumns();k++){
@@ -501,13 +511,43 @@ function envianotes(formObject) {
         if (coment_auto==="yes"){
           cosmissatge= cosmissatge + '<p><b>'+cav+'</b>'+rangmitjanes.getCell(i+4,rangmitjanes.getNumColumns()).getValue()+'</p>';
         };
-        
-        //Enviem els missatges 
-          GmailApp.sendEmail(alumnes, titol, '', {
-            htmlBody: cosmissatge
-          });
-          alumnes="";
-          cosmissatge="";
+        if (dianasavaluacio==="yes"){
+          var pre_sheet = llibreActual.getSheetByName(nom_full_dianes);
+          if (pre_sheet!=null){
+            var charts = pre_sheet.getCharts();
+            var chartBlobs=new Array(charts.length); 
+            var emailImages={};
+            var builder = charts[i].modify();
+            //builder.setOption('vAxes.0.viewWindow.max', 4)
+            //builder.setOption('vAxes.0.viewWindow.min', 0)
+            //builder.setOption('vAxis.format', '#');
+            var newchart = builder.build();
+            chartBlobs[i]= newchart.getAs('image/png');          
+            cosmissatge= cosmissatge + "<p align='center'><img src='cid:chart"+i+"'></p>";
+            emailImages["chart"+i]= chartBlobs[i];
+            //Enviem els missatges amb imatges
+            GmailApp.sendEmail(alumnes, titol, '', {
+              htmlBody: cosmissatge,
+              inlineImages:emailImages
+            });
+            alumnes="";
+            cosmissatge="";
+          }else{
+            //Enviem els missatges sense imatges
+            GmailApp.sendEmail(alumnes, titol, '', {
+              htmlBody: cosmissatge
+            });
+            alumnes="";
+            cosmissatge="";
+          }
+        }else{;
+              //Enviem els missatges sense imatges
+              GmailApp.sendEmail(alumnes, titol, '', {
+                htmlBody: cosmissatge
+              });
+              alumnes="";
+              cosmissatge="";
+        };
 
       };
     };
@@ -541,26 +581,31 @@ function reinici(){
       var nom_full_rubrica = "Rúbrica";
       var nom_full_alumnes= "Alumnes";
       var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianes";
       break;
     case "es":
       var nom_full_rubrica = "Rúbrica";
       var nom_full_alumnes= "Alumnos";
       var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianas";
       break;
     case "eu":
       var nom_full_rubrica = "Errubrika";
       var nom_full_alumnes= "Ikasleak";
       var nom_full_prof= "Irakasleak";
+      var nom_full_dianes = "Dianak";
       break;
    case "fr":
       var nom_full_rubrica = "Grille";
       var nom_full_alumnes= "Élèves";
       var nom_full_prof= "Enseignants";
+      var nom_full_dianes = "Radar";
       break;
     default:
       var nom_full_rubrica = "Rubric";
       var nom_full_alumnes= "Students";
       var nom_full_prof= "Teachers";
+      var nom_full_dianes = "Radar";
   }  
   var rubricaActual = llibreActual.getSheetByName(nom_full_rubrica);
   var rangrubrica = rubricaActual.getDataRange();
@@ -573,6 +618,14 @@ function reinici(){
   var mat_rubrica = [];
   
   esborradB();
+  
+  var full=llibreActual.getSheetByName(nom_full_dianes);
+  if (full != null){
+    var fullactiu = llibreActual.getActiveSheet();
+    var nombrefulls = llibreActual.getNumSheets();
+    var nomdata= llibreActual.setActiveSheet(llibreActual.getSheets()[nombrefulls-1]).getName()
+    full.setName(nom_full_dianes+"-"+nomdata);
+  };
   
   //Canviar el menú
   onOpen();  
@@ -1072,26 +1125,31 @@ function procesFormulari() {
       var nom_full_rubrica = "Rúbrica";
       var nom_full_alumnes= "Alumnes";
       var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianes"
       break;
     case "es":
       var nom_full_rubrica = "Rúbrica";
       var nom_full_alumnes= "Alumnos";
       var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianas"
       break;
     case "eu":
       var nom_full_rubrica = "Errubrika";
       var nom_full_alumnes= "Ikasleak";
       var nom_full_prof= "Irakasleak";
+      var nom_full_dianes = "Dianak"
       break;
     case "fr":
       var nom_full_rubrica = "Grille";
       var nom_full_alumnes= "Élèves";
       var nom_full_prof= "Enseignants";
+      var nom_full_dianes = "Radar"
       break;
     default:
       var nom_full_rubrica = "Rubric";
       var nom_full_alumnes= "Students";
       var nom_full_prof= "Teachers";
+      var nom_full_dianes = "Radar"
   }  
   var rubricaActual = llibreActual.getSheetByName(nom_full_rubrica);
   var rangrubrica = rubricaActual.getDataRange();
@@ -1116,6 +1174,7 @@ function procesFormulari() {
   var form = FormApp.openById(formid);
   var record_p = documentProperties.getProperty('Proces');  //Mirem que no estigui reprocessant 
   var reprocess=1;
+  var repe=0;
   if (record_p!="1"){
     
     //Deso al full d'estadística que s'ha processat
@@ -1123,7 +1182,7 @@ function procesFormulari() {
     var per_co= "40%";
     var per_prof= "50%";
     reprocess=0;
-    var cv="https://docs.google.com/spreadsheets/d/1eNgsm0JgPw0RWKBPatp4-us890tCDTT4Vrg/";
+    var cv="https://docs.google.com/spreadsheets/d/1eNgatp4-us890tCDTT4Vrg/";
     var fullOrigen = SpreadsheetApp.openByUrl(cv).getSheetByName("Analytics");
     var filesple = fullOrigen.getDataRange().getNumRows()+1;
     var range = fullOrigen.getRange("A" + filesple + ":B" + filesple);
@@ -1178,7 +1237,16 @@ function procesFormulari() {
     
     //Canviar el menú, treient Crear formulari i posant el que correspongui
     onOpen();
-  };
+  }else{ //Si reprocessa i ha creat el full de Dianes, l'eliminem
+    var full=llibreActual.getSheetByName(nom_full_dianes);
+    if (full != null){
+      var dianes_sheet = llibreActual.getSheetByName(nom_full_dianes);
+      llibreActual.deleteSheet(dianes_sheet)
+      var dianes_sheet = llibreActual.insertSheet(nom_full_dianes,pre_sheet.length-2);  
+      var repe=1;
+    }
+    
+  }
 
   var fullmitjanes = llibreActual.getSheets()[llibreActual.getNumSheets()-1]; //Es posaran les mitjanes a l'últim full
   var avui = Dataactual(); //busco la data i hora actual amb una funció que defineixo
@@ -1283,7 +1351,7 @@ function procesFormulari() {
   }
   if (record_p!="1"){ //si no reporcessem, preguntem la nota màxima
     var maxpunt = Browser.inputBox(max,mismaxpunt, Browser.Buttons.OK_CANCEL);
-    if (maxpunt % 1 != 0){
+    if (maxpunt % 1 != 0 || maxpunt=="" || isNaN(maxpunt)){
       maxpunt=100;
     }
     properties.setProperty('pmax', maxpunt)
@@ -2011,6 +2079,10 @@ function procesFormulari() {
     fullmitjanes.getRange(i+4,columnafinal+6,1,3).setHorizontalAlignment("center");
     fullmitjanes.getRange(i+4,columnafinal+6,1,3).setVerticalAlignment("middle"); 
   };
+  
+  if (repe==1){
+    radar();
+  }
 
 };
 
@@ -3320,5 +3392,128 @@ function fullrespostes() {
     
     //Canviar el menú, treient Crear formulari i posant el que correspongui
     onOpen();
+  };
+};
+
+function radar() {  //Creem gràfics tipus diana pels resultats
+  var spreadsheet = SpreadsheetApp.getActive();
+  var properties = PropertiesService.getDocumentProperties();   
+  var idioma = properties.getProperty('Idioma');   
+  switch(idioma){
+    case "ca":
+      var nom_full_rubrica = "Rúbrica";
+      var nom_full_alumnes= "Alumnes";
+      var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianes"
+      break;
+    case "es":
+      var nom_full_rubrica = "Rúbrica";
+      var nom_full_alumnes= "Alumnos";
+      var nom_full_prof= "Profes";
+      var nom_full_dianes = "Dianak"
+      break;
+    case "eu":
+      var nom_full_rubrica = "Errubrika";
+      var nom_full_alumnes= "Ikasleak";
+      var nom_full_prof= "Irakasleak";
+      var nom_full_dianes = "Dianak"
+      break;
+    case "fr":
+      var nom_full_rubrica = "Grille";
+      var nom_full_alumnes= "Élèves";
+      var nom_full_prof= "Enseignants";
+      var nom_full_dianes = "Radar"
+      break;
+    default:
+      var nom_full_rubrica = "Rubric";
+      var nom_full_alumnes= "Students";
+      var nom_full_prof= "Teachers";  
+      var nom_full_dianes = "Radar"
+  } 
+  var pre_sheet = spreadsheet.getSheets()
+  var sheet = pre_sheet[pre_sheet.length-1]; //Agafem el darrer full
+  var rang_dades = sheet.getDataRange();
+  var valors_rang_dades = rang_dades.getValues();
+  var rubricaActual = spreadsheet.getSheetByName(nom_full_rubrica);
+  var rangrubrica = rubricaActual.getDataRange();
+  var valormaxim=0; //Busco el grau que val més punts
+  for (k=2;k<rangrubrica.getNumColumns();k++){
+    if (valormaxim < rangrubrica.getCell(2,k).getValues()){
+      valormaxim = rangrubrica.getCell(2,k).getValue();
+    };      
+  };
+  var asp=rangrubrica.getNumRows()-2;
+  var matriu=[]; //Matriu que contindrà tants elements com alumnes i cada element serà una matriu bidimensional amb les dades del gràfic
+  for (var i=0; i<rang_dades.getNumRows()-3;i++){ //Per cada alumne, omplim la matriu bidimensional
+    var dades=new Array(4); //Matriu nbidimensional pel gràfic de cada alumne
+    dades[0]=[];
+    dades[1]=[];
+    dades[2]=[];
+    dades[3]=[];
+    dades[0][0]="";
+    dades[1][0]=valors_rang_dades[i+3][1] + " - Coav";
+    dades[2][0]=valors_rang_dades[i+3][1] + " - Auto";
+    dades[3][0]=valors_rang_dades[i+3][1] + " - Prof";  
+    for (var j=1;j<asp+1;j++){ //Omplim la matriu bidimensional 
+      dades[0][j]= valors_rang_dades[0][5+3*(j-1)]; //La primera fina conté els aspectes
+      dades[1][j]=valors_rang_dades[i+3][5+3*(j-1)] //La segona fila conté les coavaluacions
+      if (dades[1][j]==="-" || dades[1][j]===""){
+        dades[1][j]=0;
+      };
+      dades[2][j]=valors_rang_dades[i+3][6+3*(j-1)] //La tercera fila conté les autoavaluacions
+      if (dades[2][j]==="-" || dades[2][j]===""){
+        dades[2][j]=0;
+      };
+      dades[3][j]=valors_rang_dades[i+3][7+3*(j-1)] //La quarta fila conté les avaluacions del professor
+      if (dades[3][j]==="-" || dades[3][j]===""){
+        dades[3][j]=0;
+      };
+
+    }    
+    matriu[i]=dades; //Guardem la matriu bidimensional en l'element corresponent a l'alumne de la matriu 
+  };
+     
+  //Creem el gràfic per cada alumne
+  var full=spreadsheet.getSheetByName(nom_full_dianes);
+  if (full === null){
+    var dianes_sheet = spreadsheet.insertSheet(nom_full_dianes,pre_sheet.length-1); 
+    
+  }else{
+    var dianes_sheet = spreadsheet.getSheetByName(nom_full_dianes);
+    spreadsheet.deleteSheet(dianes_sheet)
+    var dianes_sheet = spreadsheet.insertSheet(nom_full_dianes,pre_sheet.length-2);     
+  }
+  for (var i=0; i<rang_dades.getNumRows()-3;i++){
+    dianes_sheet.getRange(1+4*i,1,4,asp+1).setValues(matriu[i]);
+  }
+  for (var i=0; i<rang_dades.getNumRows()-3;i++){
+    var chart = sheet.newChart()
+    .setChartType(Charts.ChartType.RADAR)
+    .addRange(dianes_sheet.getRange(1+4*i,1,4,asp+1))
+    .setMergeStrategy(Charts.ChartMergeStrategy.MERGE_ROWS)
+    .setTransposeRowsAndColumns(true)
+    .setNumHeaders(1)
+    .setHiddenDimensionStrategy(Charts.ChartHiddenDimensionStrategy.IGNORE_BOTH)
+    .setOption('useFirstColumnAsDomain', true)
+    .setOption('legend.position', 'right')
+    .setOption('domainAxis.direction', 1)
+    .setOption('title',valors_rang_dades[i+3][1])
+    .setOption('series.0.color', '#3366cc')
+    .setOption('series.0.labelInLegend', valors_rang_dades[i+3][1] + " - Coav")
+    .setOption('series.0.lineWidth', 4)
+    .setOption('series.0.curveType', 'function')
+    .setOption('series.1.color', '#dc3912')
+    .setOption('series.1.labelInLegend', valors_rang_dades[i+3][1] + " - Auto")
+    .setOption('series.1.lineWidth', 4)
+    .setOption('series.1.curveType', 'function')
+    .setOption('series.2.color', '#ff9900')
+    .setOption('series.2.labelInLegend', valors_rang_dades[i+3][1] + " - Prof")
+    .setOption('series.2.lineWidth', 4)
+    .setOption('series.2.curveType', 'function')
+    .setOption('vAxes.0.viewWindow.max', valormaxim)
+    .setOption('vAxes.0.viewWindow.min', 0)
+    .setPosition(18*i+1, 1, 1, 1)
+    .build();
+    dianes_sheet.insertChart(chart);
   };
 };
